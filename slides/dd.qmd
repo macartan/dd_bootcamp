@@ -10,10 +10,8 @@ format:
     preview-links: auto
     number-sections: true
     link-color: orange
-    menu:
-      titleSelector: 'h1, h2'
 title: "Introduction to design declaration with `DeclareDesign`"
-author: "Macartan Humphreys"
+author: "Graeme Blair, Alex Coppock, Macartan Humphreys"
 bibliography: bib.bib
 ---
 
@@ -23,8 +21,8 @@ bibliography: bib.bib
 1. [`DeclareDesign` basics ](#secdd)
 2. [`DeclareDesign` deepdive](#secdd2)
 3. [Assignment with `DeclareDesign`](#secdesign)
-4. [Power analysis](#secdiagnosis)
-5. [Observational designs](#citopics) 
+4. [Power analysis with `DeclareDesign`](#secdiagnosis)
+5. [Observational strategies](#citopics) 
 
 
 ```{css}

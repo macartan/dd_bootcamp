@@ -131,6 +131,9 @@ declaration_iv <-
                     label = "IV")  
 
 ```
+
+### Diagnosis
+
 ```{r, echo = FALSE}
 
 if(run)
@@ -138,7 +141,8 @@ if(run)
   write_rds("saved/diagnosis_iv.rds")
 
 read_rds("saved/diagnosis_iv.rds") |> reshape_diagnosis() |>
-  select(Inquiry, Estimator, 'Mean Estimand', 'Mean Estimate', 'Bias', "RMSE")
+  select(Inquiry, Estimator, 'Mean Estimand', 'Mean Estimate', 'Bias', "RMSE") |>
+  kable()
 
 ```
 
