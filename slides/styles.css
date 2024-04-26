@@ -1,0 +1,10 @@
+    <script src="plugins/menu/menu.js"></script>
+    <script>
+      Reveal.initialize({
+        plugins: [ RevealMenu ]
+        menu: {
+    // Specifies which side of the presentation the menu will
+    // be shown. Use 'left' or 'right'.
+    side: 'right'}
+      });
+    </script>

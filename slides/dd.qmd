@@ -1,0 +1,77 @@
+---
+format: 
+   revealjs:
+    embed-resources: true
+    theme: serif
+    slide-level: 3
+    slide-number: true
+    toc-depth: 2
+    show-slide-number: all
+    preview-links: auto
+    number-sections: true
+    link-color: orange
+    menu:
+      titleSelector: 'h1, h2'
+title: "Introduction to design declaration with `DeclareDesign`"
+author: "Macartan Humphreys"
+bibliography: bib.bib
+---
+
+
+# Roadmap
+
+1. [`DeclareDesign` basics ](#secdd)
+2. [`DeclareDesign` deepdive](#secdd2)
+3. [Assignment with `DeclareDesign`](#secdesign)
+4. [Power analysis](#secdiagnosis)
+5. [Observational designs](#citopics) 
+
+
+```{css}
+##| echo: false
+##| include: false
+
+.reveal table {
+  font-size: medium;
+}
+
+## also: smaller, small
+
+```
+  
+```{r, include = FALSE}
+
+source("setup.R")
+
+# remotes::install_github("jhelvy/renderthis")
+# renderthis::to_pdf("ci_2024.html")
+```
+
+```{r, child = "1_declaredesign.qmd"}
+
+```
+
+
+
+```{r, child = "2_declaredesign_deeper.qmd"}
+
+```
+
+
+```{r, child = "3_design.qmd"}
+
+```
+
+
+```{r, child = "4_evaluation.qmd"}
+
+```
+
+
+```{r, child = "5_topics.qmd"}
+
+```
+
+
+# References
+

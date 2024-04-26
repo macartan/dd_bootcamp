@@ -1,0 +1,443 @@
+---
+format: 
+   revealjs:
+    embed-resources: true
+    theme: serif
+    slide-level: 3
+    slide-number: true
+    show-slide-number: all
+    preview-links: auto
+    number-sections: true
+    link-color: orange
+title: "Design declaration, diagnosis, and redesign "
+subtitle: "MIDA and more"
+author: "Graeme Blair, Alex Coppock, Macartan Humphreys"
+bibliography: bib.bib
+---
+
+# `DeclareDesign` A deeper dive {#secdd2}
+
+## An experimental design
+
+We start with a simple experimental design and then show ways to extend.
+
+* Variations to *M* and *I* are supported by the `fabricatr` package (and others)
+* Variations to *D*  are supported by the `randomizr` package (and others)
+* Variations to *A*  are supported by the `estimatr` package (and others)
+
+
+### Steps: A simple experimental design {.smaller}
+
+
+```{r}
+
+N <- 100
+b <- .5
+
+design <- 
+  declare_model(N = N, U = rnorm(N), 
+                potential_outcomes(Y ~ b * Z + U)) + 
+  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) + 
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
+  declare_estimator(Y ~ Z, inquiry = "ate", .method = lm_robust)
+
+```
+
+A few new elements here:
+
+* `declare_model` can be used much like `mutate` with multiple columns created in sequence
+* the `potential_outcomes` function is a special function that creates potential outcome columns
+* when you assign a treatment that affects an outcome you can use `reveal_outcome` to reveal the outcome; `Z` and `Y` are  default
+
+### Steps: A simple experimental design  {.smaller}
+
+
+```{r}
+
+N <- 100
+b <- .5
+
+design <-
+  declare_model(N = N, U = rnorm(N),
+                potential_outcomes(Y ~ b * Z + U)) +
+  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) +
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) +
+  declare_estimator(Y ~ Z,
+                    inquiry = "ate",
+                    .method = lm_robust,
+                    label = "estimator 1")
+
+```
+
+A few new elements here:
+
+* when you declare an estimator you should normally associate an inquiry with the estimator and provide the method to be used; `lm_robust` is default
+* you should generally label estimators as you may have many
+
+### Steps: Order matters
+
+e.g. If you sample before defining the inquiry you get a different inquiry to if you sample after you define the inquiry
+
+
+```{r}
+design_1 <- 
+  declare_model(N = 1000, X = rep(0:1, N/2), Y = X + rnorm(N)) + 
+  declare_sampling(S= strata_rs(strata = X, strata_prob = c(.2, .8))) +
+  declare_inquiry(m = mean(Y))
+
+design_1 |> draw_estimands()
+```
+
+### Steps: Order matters
+
+e.g. If you sample before defining the inquiry you get a different inquiry to if you sample after you define the inquiry
+
+```{r}
+design_2 <- 
+  declare_model(N = 1000, X = rep(0:1, N/2), Y = X + rnorm(N)) + 
+  declare_inquiry(m = mean(Y)) +
+  declare_sampling(S= strata_rs(strata = X, strata_prob = c(.2, .8))) 
+
+design_2 |> draw_estimands()
+```
+
+## M: Key extensions to model declaration
+
+### Hierarchical data 
+
+You can generate hierarchical data like this:
+
+```{r}
+M <- 
+  declare_model(
+    households = add_level(
+      N = 100, 
+      N_members = sample(c(1, 2, 3, 4), N, 
+                         prob = c(0.2, 0.3, 0.25, 0.25), replace = TRUE)
+    ),
+    individuals = add_level(
+      N = N_members, 
+      age = sample(18:90, N, replace = TRUE)
+    )
+  )
+```
+
+### Hierarchical data 
+
+You can generate hierarchical data like this:
+
+```{r}
+M() |> head() |> kable(digits = 2) |> kable_styling(font_size = 20)
+```
+
+### Panel data   {.smaller}
+
+You can generate panel data like this:
+
+```{r}
+M <- 
+  declare_model(
+    countries = add_level(
+      N = 196, 
+      country_shock = rnorm(N)
+    ),
+    years = add_level(
+      N = 100, 
+      time_trend = 1:N,
+      year_shock = runif(N, 1, 10), 
+      nest = FALSE
+    ),
+    observation = cross_levels(
+      by = join_using(countries, years),
+      observation_shock = rnorm(N),
+      Y = 0.01 * time_trend + country_shock + year_shock + observation_shock 
+    )
+  )
+```
+
+### Panel data
+
+You can generate panel data like this:
+
+```{r}
+M() |> head() |> kable(digits = 2) |> kable_styling(font_size = 20)
+```
+
+
+### Preexisting data
+
+```{r, eval = FALSE}
+M <- 
+  declare_model(
+    data = baseline_data,
+    attitudes = sample(1:5, N, replace = TRUE)
+  )
+```
+
+### M: Steps
+
+You can repeat steps and play with the order, always conscious of the direction of the pipe
+
+```{r}
+design <- 
+  declare_model(N = N, X = rep(0:1, N/2)) +
+  declare_model(U = rnorm(N), potential_outcomes(Y ~ b * Z * X + U)) + 
+  declare_assignment(Z = block_ra(blocks = X), Y = reveal_outcomes(Y ~ Z)) + 
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
+  declare_inquiry(cate = mean(Y_Z_1[X==0] - Y_Z_0[X==0])) + 
+  declare_estimator(Y ~ Z, inquiry = "ate", label = "ols") + 
+  declare_estimator(Y ~ Z*X, inquiry = "cate", label = "fe")
+
+```
+
+
+### M: You can generate multiple columns together
+
+```{r multiplecolumns}
+
+M2 <-
+  declare_model(
+    draw_multivariate(c(X1, X2) ~ MASS::mvrnorm(
+      n = 1000,
+      mu = c(0, 0),
+      Sigma = matrix(c(1, 0.3, 0.3, 1), nrow = 2)
+    )))
+
+```
+
+### M: You can generate multiple columns together
+
+```{r}
+M2() |> head() |> kable(digits = 2) |> kable_styling(font_size = 28) 
+```
+
+### M: Cluster structures with cluster correlations
+
+```{r}
+M <-
+  declare_model(households = add_level(N = 1000),
+                individuals = add_level(
+                  N = 4,
+                  X = draw_normal_icc(
+                    mean = 0,
+                    clusters = households,
+                    ICC = 0.65
+                  )
+                ))
+```
+
+### M: Cluster structures with cluster correlations
+
+```{r}
+model <- lm_robust(X ~ households, data = M())
+model$adj.r.squared
+```
+
+
+## I: Inquiries
+
+### Types
+
+Many causal inquiries are simple summaries of potential outcomes:
+
+::: {style="font-size: 20px;"}
+| Inquiry                                                    | Units                                            | Code                                                              |  
+| ---------------------------------------------------------- | ------------------------------------------------ |----------------------------------------------------------------- |
+| Average treatment effect in a finite population (PATE)     | Units in the population                          | `mean(Y_D_1 - Y_D_0)`                                             | 
+| Conditional average treatment effect (CATE) for X = 1      | Units for whom X = 1                             | `mean(Y_D_1[X == 1] - Y_D_0[X == 1])`                             | 
+| Complier average causal effect (CACE)                      | Complier units                                   | `mean(Y_D_1[D_Z_1 > D_Z_0] - Y_D_0[D_Z_1 > D_Z_0])`               | 
+| Causal interactions of $D_1$ and $D_2$                     | Units in the population                          | `mean((Y_D1_1_D2_1 - Y_D1_0_D2_1) - (Y_D1_1_D2_0 - Y_D1_0_D2_0))` | 
+:::
+
+Generating potential outcomes columns gets you far
+
+### I: Inquiries
+
+Often though we need to define inquiries as a function of continuous variables. For this generating a potential outcomes function can make life easier. This helps for:
+
+* Continuous quantities
+* Spillover quantities
+* Complex counterfactuals
+
+### I: Inquiries: Complex counterfactuals
+
+Here is an example of using functions to define complex counterfactuals:
+
+```{r}
+
+f_M <- function(X, UM) 1*(UM < X)
+f_Y <- function(X, M, UY) X + M - .4*X*M + UY
+
+design <- 
+  declare_model(N = 100,
+                X = simple_rs(N),
+                UM = runif(N),
+                UY = rnorm(N),
+                M = f_M(X, UM),
+                Y = f_Y(X, M, UY)) +
+  declare_inquiry(Q1 = mean(f_Y(1, f_M(0, UM), UY) - f_Y(0, f_M(0, UM), UY)))
+
+design |> draw_estimands() |> kable() |> kable_styling(font_size = 20)
+```
+
+
+### I: Inquiries: Complex counterfactuals {.smaller}
+
+Here is an example of using functions to define effects of continuous treatments.
+
+```{r}
+
+f_Y <- function(X, UY) X - .25*X^2 + UY
+
+design <- 
+  declare_model(N = 100,
+                X  = rnorm(N),
+                UY = rnorm(N),
+                Y = f_Y(X, UY)) +
+  declare_inquiry(
+    Q1 = mean(f_Y(X+1, UY) - f_Y(X, UY)),
+    Q2 = mean(f_Y(1, UY) - f_Y(0, UY)),
+    Q3 = (lm_robust(Y ~ X)|> tidy())[2,2]
+    )
+
+design |> draw_estimands() |> kable() |> kable_styling(font_size = 20)
+```
+
+which one is the ATE?
+
+## D 
+
+### D: Assignment schemes
+
+The `randomizr` package has a set of functions for different types of block and cluster assignments.
+
+
+* Simple random assignment: "Coin flip" or Bernoulli random assignment. All units have the same probability of assignment:  `simple_ra(N = 100, prob = 0.25)`
+* Complete random assignment: Exactly m of N units are assigned to treatment, and all units have the same probability of assignment m/N `complete_ra(N = 100, m = 40)`
+
+### D: Assignment schemes
+
+* Block random assignment: Complete random assignment within pre-defined blocks. Units within the same block have the same probability of assignment m_b / N_b `block_ra(blocks = regions)`
+* Cluster random assignment:  Whole groups of units are assigned to the same treatment condition. `cluster_ra(clusters = households)`                         * Block-and-cluster assignment: Cluster random assignment within blocks of clusters `block_and_cluster_ra(blocks = regions, clusters = villages)`                               
+
+### D: Assignment schemes
+
+You can combine these in various ways. For examples with saturation random assignment first clusters are assigned to a saturation level, then units within clusters are assigned to treatment conditions according to the saturation level:
+
+```{r, eval = FALSE}
+saturation = cluster_ra(clusters = villages, conditions = c(0, 0.25, 0.5, 0.75))
+block_ra(blocks = villages, prob_unit = saturation)
+```
+
+## A 
+
+### A: Answers: terms {.smaller}
+
+By default `declare_estimates()` assumes you are interested in the *first term after the constant* from the output of an estimation procedure.
+
+But you can say what you are interested in directly using `term` and you can also associate different terms with different quantities of interest using `inquiry`.
+
+```{r terms}
+design <-
+  declare_model(
+    N = 100,
+    X1 = rnorm(N),
+    X2 = rnorm(N),
+    X3 = rnorm(N),
+    Y = X1 - X2 + X3 + rnorm(N)
+  ) +
+  declare_inquiries(ate_2 = -1, ate_3 = 1) +
+  declare_estimator(Y ~ X1 + X2 + X3,
+                    term = c("X2", "X3"),
+                    inquiry = c("ate_2", "ate_3"))
+
+design  |> run_design()  |> kable(digits = 2) |> kable_styling(font_size = 20)
+```
+
+### A: Answers: terms  {.smaller}
+
+Sometimes it can be confusing what the names of a term is but you can figure this by running the estimation strategy directly. Here's an example where the names of a term might be confusing.
+
+```{r}
+lm_robust(Y ~ A*B, 
+          data = data.frame(A = rep(c("a",  "b"), 3), 
+                            B = rep(c("p", "q"), each = 3), 
+                            Y = rnorm(6))) |>
+  coef() |> kable() |> kable_styling(font_size = 20)
+```
+
+The names are they appear in the output here is the name of the term that `declare_estimator` will look for.
+
+
+### A: Answers: other packages  {.smaller}
+
+`DeclareDesign` works natively with `estimatr` but you you can use whatever packages you like. You do have to make sure though that estimatr gets as input a nice tidy dataframe of estimates, and that might require some tidying.
+
+```{r glm}
+design <- 
+  declare_model(N = 1000, U = runif(N), 
+                potential_outcomes(Y ~ as.numeric(U < .5 + Z/3))) + 
+  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) + 
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
+  declare_estimator(Y ~ Z, inquiry = "ate", 
+                    .method = glm, 
+                    family = binomial(link = "probit"))
+```
+
+Note that we passed additional arguments to `glm`; that's easy. 
+
+It's not a good design though. Just look at the diagnosis:
+
+### A: Answers: other packages
+
+```{r, eval = FALSE}
+diagnose_design(design)
+```
+
+```{r}
+if(run)
+  diagnose_design(design) |> write_rds("saved/probit.rds")
+
+read_rds("saved/probit.rds") |> 
+  reshape_diagnosis() |>
+  kable() |> 
+  kable_styling(font_size = 20)
+```
+
+Why is it so terrible?
+
+
+### A: Answers: other packages {.smaller}
+
+Because the probit estimate does not target the ATE directly; you need to do more work to get there. 
+
+You essentially have to write a function to get the estimates, calculate  the quantity of interest and other stats, and turn these into a nice dataframe.
+
+Luckily you can use the `margins` package with  `tidy` to create a `.summary` function which you can pass to `declare_estimator` to do all this for you
+
+```{r margins}
+
+tidy_margins <- function(x) 
+  broom::tidy(margins::margins(x, data = x$data), conf.int = TRUE)
+
+design <- design +  
+  declare_estimator(Y ~ Z, inquiry = "ate", 
+                    .method = glm, 
+                    family = binomial(link = "probit"),
+                    .summary = tidy_margins,
+                    label = "margins")
+```
+
+### A: Answers: other packages
+
+```{r}
+if(run)
+  diagnose_design(design) |> write_rds("saved/probit_2.rds")
+
+read_rds("saved/probit_2.rds") |> reshape_diagnosis() |> kable() |> 
+  kable_styling(font_size = 20)
+```
+
+
+Much better
+

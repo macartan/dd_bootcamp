@@ -1,0 +1,167 @@
+---
+title: "puzzles for `DeclareDesign` bootcamp"
+author: "Macartan Humphreys"
+date: "2024"
+format: 
+  html:
+    toc: true
+    number-sections: true
+    embed-resources: true
+bibliography: ../slides/bib.bib
+filters: 
+  - custom-numbered-blocks
+custom-numbered-blocks:
+  groups: 
+    exgrp: 
+      collapse: true
+      boxstyle: foldbox.simple  
+  classes:
+    Q:
+      group: exgrp
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
+library(CausalQueries)
+library(DeclareDesign)
+```
+
+For each puzzle: explore the issues raised by the puzzle and generate a self contained presentation in `.qmd` (or `.Rmd`) that reports on your investigations. 
+
+
+# Basic DD
+
+::: {.Q #q-ddstartup}
+
+**False positives and $N$s**
+
+* Sometimes people worry that with larger samples you are more likely to get a false positive. Is that true?
+
+* Assess by generating a simple experimental design from scratch in which we can vary the `N` and *in which there is no true effect* of some treatment.
+
+Then:
+
+* Plot the distribution of $p$ values from the `simulations_df`. What shape is it and why?
+* Plot the power as $N$ increases, using the `diagnosands_df`
+* Plot the estimates against $p$ values for different values of $N$; what do you see?
+* Discuss
+
+**Hint**: the  slides contain code for a simple experimental design
+
+:::
+
+
+
+::: {.Q #q-ses}
+
+**A design with correlated outcomes** 
+
+* The standard error is standard deviation of the sampling distribution of an estimator. 
+
+* That sounds complicated, but actually the sampling distribution of an estimate lives in the simulations data frame so you can look at its standard deviation and assess whether standard errors estimate it well.
+
+*  `Challenge`: Generate a simple experimental design in which there is a correlation (`rho`) between the two potential outcomes (`Y_Z_0` and `Y_Z_1`). 
+
+
+* Show the distribution of the estimates over different values of `rho`
+
+* Assess the performance of the estimates of the standard errors and the coverage as `rho` goes from -1 to 0 to 1. Describe how coverage changes. (Be sure to be clear on what coverage is!)
+
+
+```{r}
+Y_Z_0 <- rnorm(1000)
+Y_Z_1 <- correlate(rnorm, given = Y_Z_0, rho = .5)
+
+cor(Y_Z_0, Y_Z_1)
+```
+:::
+
+
+
+
+# Inference
+
+
+::: {.Q #q-ses2}
+
+**Clustering** 
+
+* Say that you have a set of 20 schools randomly sampled from a superpopulation of schools. There are 5 classrooms in each school and 5 students in each class room.
+* Say you assign a treatment at the classroom level. Should you cluster your standard errors at the level of the school or at the level of the classroom?
+
+Now:
+
+* Declare a design with this hierarchical data structure. Allow for the possibility that treatment effects vary at the school level. Assess the performance of the standard errors when you cluster at each of these levels (and when you do not cluster at all).
+* Examine whether the performance depends on whether you are interested in the population average effects or the sample average effects.
+
+**Hint** For generating hierarchical models use `add_level`. Also: be sure to have a reasonable large top level shock in order to see differences arising from clustering at the school level. You could also try heterogeneous effects by school.
+
+```{r}
+g <- 
+  declare_model(
+    L1 = add_level(N = 10, u = rnorm(N)),
+    L2 = add_level(N = 12, v = rnorm(N)))
+
+g() |> slice(1:3, 13:15) |> kable()
+```
+:::
+
+
+
+::: {.Q #q-ri1}
+
+**randomization inferences**
+
+Declare a factorial design with two binary treatments and an interaction between them. For example $Y = .1\times X1 + .3 \times X2 -  .2 \times X1 \times X2$
+
+Have a non-stochastic model declaration so that the only source of randomness is in the assignment procedure.
+
+Calculate a $p$ values for the null hypothesis of *no effect of treatmen $X1$* using randomization inference. 
+
+* Bonus: do the same for the null hypothesis *no interaction between treatments*
+* Bonus: Can you check the validity of the p value using the simulations dataframe?
+
+Hint: You can use the `ri2` package.  Hint you can keep the top level fixed by declaring shocks outside the design (`U <- rnorm(N)`) or by using a simulation vector in diagnosis (`sims = c(1,1,500, 1, ...)`)
+
+:::
+
+
+
+# Controls
+
+::: {.Q #q-controls}
+
+**Covariates**
+
+Sometimes researchers running an experiment look for imbalance on a covariate and then include the covariate as a control if and only if they see imbalance. Set up a design in which a covariate may or may not affect potential outcomes and assess the performance given different rules 
+
+* no control 
+* control as a function of correlations of covariates with outcomes
+* control as a function of correlations of covariates with outcomes in control only
+* control as a function of correlations of covariates with treatments
+* control regardless of correlations
+
+
+:::
+
+
+
+
+::: {.Q #q-confounded}
+
+**Confounded.** 
+
+Declare a design in which:
+
+* The assignment of a  treatment $X$ depends in part on upon some other, binary, variable $W$: in particular  $\Pr(X=1|W=0) = .2$ and $\Pr(X=1|W=1) = .5$)
+* The outcome $Y$ depends on both $X$ and $W$: in particular $Y = X*W + u$ where $u$ is a random shock.
+* Diagnose a design with three approaches to estimating the effect of $X$ on $Y$: (a) ignoring $W$ (b) adding $W$ as a linear control (c) including both $W$  and an interaction between $W$ and $X$. 
+
+Discuss results. Do any of these return the right answer?
+
+**Hint:** You can add three separate `declare_estimator` steps. They should have distinct labels. The trickiest part is to figure out how to extract the estimate in (c) because you will have both a main term and an interaction term for $X$. 
+:::
+
