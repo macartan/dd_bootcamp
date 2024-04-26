@@ -24,8 +24,7 @@ source("setup.R")
 # Assignments with `DeclareDesign`
 
 
-
-## Assignments with `DeclareDesign`
+## Running example
 
 ### A design: Multilevel data
 
@@ -68,6 +67,8 @@ Here is the distribution between treatment and control:
 kable(t(as.matrix(table(my_data$Z))), 
       col.names = c("control", "treatment"))
 ```
+
+## Complete
 
 ### Complete Random Assignment using the built in function  {.smaller}
 
@@ -122,6 +123,9 @@ tile_design <- function(design)
 tile_design(design_complete)
 ```
 
+
+## Block
+
 ### Block Random Assignment {#blockedAss}
 
 -   The treatment and control group will **in expectation** contain the same share of students in different classrooms.
@@ -154,6 +158,8 @@ design_blocked <-
 tile_design(design_blocked)
 ```
 
+## Clustered
+
 ### Clustering
 
 But what if all students in a given class have to be assigned the same treatment?
@@ -180,6 +186,8 @@ design_clustered <-
 tile_design(design_clustered)
 ```
 
+## Clustered and Blocked
+
 ### Clustered and Blocked
 
 ```{r, echo = TRUE}
@@ -204,6 +212,8 @@ design_clustered_blocked <-
 
 tile_design(design_clustered_blocked)
 ```
+
+## Comparisons
 
 ### Illustration of efficiency gains from blocking  {.smaller}
 
@@ -247,7 +257,9 @@ diagnoses$simulations_df |>
 
 ```
 
-### Nasty integer issues {.smaller}
+## Nasty integer issues
+
+### The issues {.smaller}
 
 * In many designs you seek to assign an integer number of subjects to treatment from some set.
 
@@ -474,7 +486,7 @@ Bunch it?:
 
 ### Factorial Designs {.smaller}
 
-Two ways to do factorialtial assignments in `DeclareDesign`:
+Two ways to do factorial assignments in `DeclareDesign`:
 
 ```{r, eval = FALSE}
 # Block the second assignment

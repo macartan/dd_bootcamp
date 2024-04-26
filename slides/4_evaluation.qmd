@@ -793,3 +793,149 @@ bothered?
 * Don't let a focus on power distract you from more *substantive* diagnosands
 
 
+
+## Extra slides
+
+### Illustration of power calculation
+
+Recall?: The power of a design is the *probability* that you will reject a null hypothesis
+
+
+```{r}
+N <- 100
+b <- .5
+
+design <- 
+  declare_model(N = N, 
+    U = rnorm(N),
+    potential_outcomes(Y ~ b * Z + U)) + 
+  declare_assignment(Z = simple_ra(N),
+                     Y = reveal_outcomes(Y ~ Z)) + 
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
+  declare_estimator(Y ~ Z, inquiry = "ate", .method = lm_robust)
+```
+
+### "Run" the design once
+
+
+```{r, eval = FALSE}
+run_design(design)
+```
+
+
+```{r, echo = FALSE}
+run_design(design) |>
+  
+  kable(digits = 2, caption = "Summary of a single 'run' of the design") |> 
+  kable_styling(font_size = 18)
+
+```
+
+### Run it many times
+
+```{r, eval = FALSE, echo = TRUE}
+sims_1 <- simulate_design(design) 
+
+sims_1 |> select(sim_ID, estimate, p.value)
+```
+
+```{r, echo = FALSE}
+if(run)
+  simulate_design(design, sims = 3000) |>
+  write_rds("saved/simple_simulations_1")
+
+sims_1 <- 
+  read_rds("saved/simple_simulations_1")
+
+sims_1 |>  select(sim_ID, estimate, p.value) |> head() |> kable(digits = 2) |> 
+  kable_styling(font_size = 20)
+```
+
+### Power is mass of the sampling distribution *of decisions* under the model
+
+
+```{r, message = FALSE, fig.height = 1.5, fig.width = 6}
+sims_1 |>
+  ggplot(aes(p.value)) + 
+  geom_histogram(boundary = 0) +
+  geom_vline(xintercept = .05, color = "red")
+
+```
+
+
+### Power is mass of the sampling distribution *of decisions* under the model
+
+```{r, echo = TRUE, eval = FALSE}
+redesign(design, b = 0) |> 
+  simulate_design(sims = 10000) 
+```
+
+```{r, echo = FALSE}
+if(run)
+  redesign(design, b = 0) |> 
+  simulate_design(sims = 10000) |>
+  write_rds("saved/simple_simulations_2")
+
+sims_2 <- 
+  read_rds("saved/simple_simulations_2")
+
+```
+
+
+```{r, echo = TRUE, message = FALSE, echo = FALSE, fig.height = 1.5, fig.width = 6}
+sims_2 |>
+  ggplot(aes(p.value)) + 
+  geom_histogram(boundary = 0) +
+  geom_vline(xintercept = .05, color = "red")
+
+```
+
+### Design diagnosis does it all (over multiple designs)
+
+
+```{r, eval  = FALSE}
+  diagnose_design(design)
+```
+
+
+```{r, echo = FALSE}
+if(run)
+  design |> 
+  diagnose_design(sims = 10000) |>
+  write_rds("saved/simple_diagnosis_1")
+
+read_rds("saved/simple_diagnosis_1") |>
+  reshape_diagnosis() |>
+  select("Mean Estimate", "Bias", "SD Estimate", "RMSE", "Power", "Coverage" ) |>
+  kable() |> 
+  kable_styling(font_size = 20)
+
+```
+
+### Design diagnosis does it all
+
+```{r, eval = FALSE}
+design |>
+  redesign(b = c(0, 0.25, 0.5, 1)) |>
+  diagnose_design()
+```
+
+
+```{r, echo = FALSE}
+if(run)
+design |>
+  redesign(b = c(0, 0.25, 0.5, 1)) |>
+  diagnose_design(sims = 10000) |>
+  write_rds("saved/simple_diagnosis_2")
+
+  read_rds("saved/simple_diagnosis_2") |>
+    reshape_diagnosis() |>
+    select(b, "Mean Estimate", "Bias", "SD Estimate", "RMSE", "Power", "Coverage" ) |>
+    kable() |> 
+    kable_styling(font_size = 20)
+
+  
+```
+
+
+
