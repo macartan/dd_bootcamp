@@ -1,13 +1,13 @@
 ---
-title: "`DeclareDesign` bootcamp"
+title: "DeclareDesign bootcamp"
 format: 
   html:
     theme: slate
     embed-resources: true
 ---
 
-* Major resources: declaredesign.org
+* [DeclareDesign.org](http://declaredesign.org)
 
 * [All slides](https://macartan.github.io/dd_bootcamp/dd.html)
 
-* Puzzles: [https://macartan.github.io/dd_bootcamp/exercises.html](https://macartan.github.io/dd_bootcamp/exercises.html)
+* [Exercises](https://macartan.github.io/dd_bootcamp/exercises.html)
