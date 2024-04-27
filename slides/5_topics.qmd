@@ -21,7 +21,7 @@ source("setup.R")
 
 # Observational designs {#citopics}
 
-*Introduction to observational strategies and more advanced  topics*
+*Introduction to observational strategies using `DeclareDesign`*
 
 ## Outline
 
@@ -181,7 +181,7 @@ $$\hat\tau_{ATT} = \tau_{ATT} + \text{Difference in trends}$$
 
 
 
-### Simplest case
+### Simplest DiD: Design
 
 ```{r}
 n_units <- 2
@@ -203,7 +203,15 @@ design <-
 
 ```
 
-### Diagnosis {.smaller}
+
+### Simplest DiD: Data
+
+```{r}
+draw_data(design) |> 
+  head() |> kable()
+```
+
+### Simplest DiD: Diagnosis {.smaller}
 
 Here only the two way fixed effects is unbiased and only for the ATT.
 

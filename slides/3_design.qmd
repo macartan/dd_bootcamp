@@ -321,6 +321,37 @@ df |> ggplot(aes(p, Z)) + geom_point() + theme_bw()
  
 ```
 
+### Design with two units and heterogeneous probabilities
+
+```{r}
+probs <- c(.8, .2)
+
+design <- 
+  declare_model(N = 2, 
+                Y_Z_1 = c(1, 1),
+                Y_Z_0 = c(-1, 1)) +
+  declare_inquiry(ATE = 1) +
+  declare_assignment(
+    Z = prob_ra(prob = probs),
+    condition_prs = probs,
+    Y = reveal_outcomes(Y ~ Z)) +
+  declare_estimator(Y ~ Z, label  = "ht", 
+                    .method = horvitz_thompson,
+                    condition_prs = condition_prs)
+```
+
+### Design with two units and heterogeneous probabilities
+
+```{r, echo = FALSE}
+if(run)
+  diagnose_design(design, sims = 10000) |> write_rds("saved/ht.rds")                
+
+read_rds("saved/ht.rds") |> reshape_diagnosis() |> select(Inquiry, Estimator, 'N Sims', Bias, RMSE) |> kable()
+
+```
+
+
+Unbiased but very very noisy (simulations also noisy)
 
 ## Indirect assignments
 

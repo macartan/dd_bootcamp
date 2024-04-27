@@ -15,18 +15,18 @@ author: "Graeme Blair, Alex Coppock, Macartan Humphreys"
 bibliography: bib.bib
 ---
 
-# `DeclareDesign` A deeper dive {#secdd2}
+# `DeclareDesign`: A deeper dive {#secdd2}
 
-## An experimental design
+## Steps in an experimental design
 
-We start with a simple experimental design and then show ways to extend.
+We start with a simple experimental design with all four elements of MIDA and then show ways to extend.
 
 * Variations to *M* and *I* are supported by the `fabricatr` package (and others)
 * Variations to *D*  are supported by the `randomizr` package (and others)
 * Variations to *A*  are supported by the `estimatr` package (and others)
 
 
-### Steps: A simple experimental design {.smaller}
+### A simple experimental design {.smaller}
 
 
 ```{r}
@@ -43,36 +43,12 @@ design <-
 
 ```
 
-A few new elements here:
+New elements:
 
 * `declare_model` can be used much like `mutate` with multiple columns created in sequence
-* the `potential_outcomes` function is a special function that creates potential outcome columns
+* the `potential_outcomes` function is a special function that creates potential outcome columns for different values of `Z`
 * when you assign a treatment that affects an outcome you can use `reveal_outcome` to reveal the outcome; `Z` and `Y` are  default
-
-### Steps: A simple experimental design  {.smaller}
-
-
-```{r}
-
-N <- 100
-b <- .5
-
-design <-
-  declare_model(N = N, U = rnorm(N),
-                potential_outcomes(Y ~ b * Z + U)) +
-  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) +
-  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) +
-  declare_estimator(Y ~ Z,
-                    inquiry = "ate",
-                    .method = lm_robust,
-                    label = "estimator 1")
-
-```
-
-A few new elements here:
-
-* when you declare an estimator you should normally associate an inquiry with the estimator and provide the method to be used; `lm_robust` is default
-* you should generally label estimators as you may have many
+* when you declare an estimator you should normally include a label, specify an inquiry, and provide the method to be used (`lm_robust` is default)
 
 ### Steps: Order matters
 
@@ -174,7 +150,7 @@ M <-
   )
 ```
 
-### M: Steps
+###  Steps
 
 You can repeat steps and play with the order, always conscious of the direction of the pipe
 
@@ -191,7 +167,7 @@ design <-
 ```
 
 
-### M: You can generate multiple columns together
+###  You can generate multiple columns together
 
 ```{r multiplecolumns}
 
@@ -205,13 +181,13 @@ M2 <-
 
 ```
 
-### M: You can generate multiple columns together
+###  You can generate multiple columns together
 
 ```{r}
 M2() |> head() |> kable(digits = 2) |> kable_styling(font_size = 28) 
 ```
 
-### M: Cluster structures with cluster correlations
+###  Cluster structures with cluster correlations
 
 ```{r}
 M <-
@@ -226,7 +202,7 @@ M <-
                 ))
 ```
 
-### M: Cluster structures with cluster correlations
+###  Cluster structures with cluster correlations
 
 ```{r}
 model <- lm_robust(X ~ households, data = M())
@@ -236,7 +212,7 @@ model$adj.r.squared
 
 ## I: Inquiries
 
-### Types
+### Inquiries using predefined potential outcomes
 
 Many causal inquiries are simple summaries of potential outcomes:
 
@@ -251,7 +227,7 @@ Many causal inquiries are simple summaries of potential outcomes:
 
 Generating potential outcomes columns gets you far
 
-### I: Inquiries
+### Inquiries using functions
 
 Often though we need to define inquiries as a function of continuous variables. For this generating a potential outcomes function can make life easier. This helps for:
 
@@ -259,7 +235,7 @@ Often though we need to define inquiries as a function of continuous variables. 
 * Spillover quantities
 * Complex counterfactuals
 
-### I: Inquiries: Complex counterfactuals
+### Complex counterfactuals
 
 Here is an example of using functions to define complex counterfactuals:
 
@@ -281,7 +257,7 @@ design |> draw_estimands() |> kable() |> kable_styling(font_size = 20)
 ```
 
 
-### I: Inquiries: Complex counterfactuals {.smaller}
+### Complex counterfactuals {.smaller}
 
 Here is an example of using functions to define effects of continuous treatments.
 
@@ -307,7 +283,7 @@ which one is the ATE?
 
 ## D 
 
-### D: Assignment schemes
+###  Assignment schemes
 
 The `randomizr` package has a set of functions for different types of block and cluster assignments.
 
@@ -315,17 +291,19 @@ The `randomizr` package has a set of functions for different types of block and 
 * Simple random assignment: "Coin flip" or Bernoulli random assignment. All units have the same probability of assignment:  `simple_ra(N = 100, prob = 0.25)`
 * Complete random assignment: Exactly m of N units are assigned to treatment, and all units have the same probability of assignment m/N `complete_ra(N = 100, m = 40)`
 
-### D: Assignment schemes
+###  Assignment schemes
 
-* Block random assignment: Complete random assignment within pre-defined blocks. Units within the same block have the same probability of assignment m_b / N_b `block_ra(blocks = regions)`
+* Block random assignment: Complete random assignment within pre-defined blocks. Units within the same block have the same probability of assignment $m_b / N_b$: `block_ra(blocks = regions)`
 * Cluster random assignment:  Whole groups of units are assigned to the same treatment condition. `cluster_ra(clusters = households)`                         * Block-and-cluster assignment: Cluster random assignment within blocks of clusters `block_and_cluster_ra(blocks = regions, clusters = villages)`                               
 
-### D: Assignment schemes
+###  Assignment schemes
 
 You can combine these in various ways. For examples with saturation random assignment first clusters are assigned to a saturation level, then units within clusters are assigned to treatment conditions according to the saturation level:
 
 ```{r, eval = FALSE}
-saturation = cluster_ra(clusters = villages, conditions = c(0, 0.25, 0.5, 0.75))
+saturation = cluster_ra(clusters = villages, 
+                        conditions = c(0, 0.25, 0.5, 0.75))
+
 block_ra(blocks = villages, prob_unit = saturation)
 ```
 
@@ -366,7 +344,7 @@ lm_robust(Y ~ A*B,
   coef() |> kable() |> kable_styling(font_size = 20)
 ```
 
-The names are they appear in the output here is the name of the term that `declare_estimator` will look for.
+The names as they appear in the output here is the name of the term that `declare_estimator` will look for.
 
 
 ### A: Answers: other packages  {.smaller}
@@ -440,4 +418,250 @@ read_rds("saved/probit_2.rds") |> reshape_diagnosis() |> kable() |>
 
 
 Much better
+
+
+## Advanced diagnosis
+
+### diagnosands code
+
+```{r, eval = FALSE}
+DeclareDesign:::default_diagnosands
+```
+
+```{r, eval = FALSE}
+    mean_estimand <- mean(estimand)
+    mean_estimate <- mean(estimate)
+    bias <- mean(estimate - estimand)
+    sd_estimate <- sd(estimate)
+    rmse <- sqrt(mean((estimate - estimand)^2))
+    power <- mean(p.value <= alpha)
+    coverage <- mean(estimand <= conf.high & estimand >= conf.low)
+```
+
+
+### More diagnosands
+
+```{r, eval = FALSE}
+
+    mean_se = mean(std.error)
+    type_s_rate = mean((sign(estimate) != sign(estimand))[p.value <= alpha])
+    exaggeration_ratio = mean((estimate/estimand)[p.value <= alpha])
+    var_estimate = pop.var(estimate)
+    mean_var_hat = mean(std.error^2)
+    prop_pos_sig = estimate > 0 & p.value <= alpha
+    mean_ci_length = mean(conf.high - conf.low)
+
+```
+
+### Custom diagnosands
+
+```{r, warning = FALSE}
+
+my_diagnosands <-
+  declare_diagnosands(median_bias = median(estimate - estimand))
+
+diagnose_design(simplest_design, diagnosands = my_diagnosands, sims = 10) |>
+  reshape_diagnosis() |> kable() |> kable_styling(font_size = 20)
+```
+
+### Adding diagnosands to a design
+
+```{r, warning = FALSE}
+simplest_design <- 
+  set_diagnosands(simplest_design, my_diagnosands)
+
+simplest_design |> diagnose_design(sims = 10)|>
+  reshape_diagnosis() |> kable() |> kable_styling(font_size = 20)
+
+```
+
+
+
+### Diagnosing in groups {.smaller}
+
+
+You can partition the simulations data frame into groups before calculating diagnosands. 
+
+```{r, eval = FALSE}
+grouped_diagnosis <- 
+  
+  simplest_design |>
+  diagnose_design(
+    make_groups = vars(significant = p.value <= 0.05),
+    sims = 500
+  )
+```
+
+
+```{r, echo = FALSE}
+if(run)
+  simplest_design |>
+  
+  
+  set_diagnosands() |>
+
+    diagnose_design(
+    make_groups = vars(significant = p.value <= 0.05),
+    sims = 500
+  ) |>
+  write_rds("saved/group_rep.rds")
+
+grouped_diagnosis <-   read_rds("saved/group_rep.rds") 
+
+grouped_diagnosis |>
+  reshape_diagnosis() |>
+  select(-Inquiry, - Estimator, -Outcome, -Term) |>
+  kable(digits = 2) |> 
+  kable_styling(font_size = 20)
+
+```
+
+Note especially the mean estimate,  the power, the coverage, the RMSE, and the bias.
+(Bias is not large because we have both under and over estimates)
+
+### Significance filter
+
+```{r, fig.height = 2, fig.width = 6}
+grouped_diagnosis$simulations_df |>
+  ggplot(aes(estimate, p.value, color = significant)) + geom_point()
+```
+
+### Multistage simulation 
+
+* Usually a design simulation simulates "from the top": going from the beginning to the end of the design in each run and repeating
+* But sometimes you might want to follow a tree like structure and simulate different steps a different number of times
+
+### Multistage simulation illustration
+
+Consider for instance this sampling design:
+
+```{r}
+sampling_design <- 
+  
+  declare_model(N = 500, Y = 1 + rnorm(N, sd = 10)) +
+  declare_inquiry(Q = mean(Y)) +
+  declare_sampling(S = complete_rs(N = N, n = 100)) + 
+  declare_estimator(Y ~ 1)
+
+```
+
+
+### Multistage simulation illustration
+
+Compare these two diagnoses:
+
+```{r, warning = FALSE, eval = FALSE}
+diagnosis_1 <- diagnose_design(sampling_design, sims = c(5000, 1, 1, 1)) 
+diagnosis_2 <- diagnose_design(sampling_design, sims = c(1, 5000, 1, 1))
+```
+
+
+
+```{r, warning = FALSE, echo = FALSE}
+if(run){
+set.seed(1)
+diagnose_design(sampling_design, sims = c(5000, 1, 1, 1)) |> write_rds("saved/multistage1.rds") 
+diagnose_design(sampling_design, sims = c(1, 5000, 1, 1)) |> write_rds("saved/multistage2.rds")
+}
+
+list(diagnosis_1 = read_rds("saved/multistage1.rds") |> reshape_diagnosis(),
+     diagnosis_2 = read_rds("saved/multistage2.rds") |> reshape_diagnosis()) |>
+  bind_rows(.id = "diagnosis") |>
+  select(-Design, -Inquiry, -Estimator, -Outcome, -Term) |>
+  kable(digits = 2) |> 
+  kable_styling(font_size = 20)
+     
+
+```
+
+In the second the estimate is drawn just once. The SD of the estimate is lower. But the RMSE is not very different. 
+
+
+## Advanced Redesign
+
+### Redesign with vector arguments
+When redesigning with arguments that are vectors,
+use `list()` in redesign, with each list item representing a design you wish to create
+
+```{r, eval = FALSE}
+
+prob_each <- c(.1, .5, .4)
+
+design_multi  <- 
+  declare_model(N = 10) +
+  declare_assignment(Z = complete_ra(N = N, prob_each = prob_each))
+
+## returns two designs
+
+designs <- design_multi |> 
+  redesign(prob_each = list(c(.2, .5, .3), c(0, .5, .5)))
+  
+designs |> lapply(draw_data)
+```
+
+
+### Redesign warnings
+
+
+A parameter has to be called correctly. And you get no warning if you misname.
+
+```{r}
+simplest_design_N  |> redesign(n = 200) |> draw_data() |> nrow()
+```
+
+why not 200?
+
+### Redesign warnings
+
+
+A parameter has to be called explicitly
+
+```{r}
+N <- 100
+
+my_N <- function(n = N) n
+
+simplest_design_N2 <- 
+  
+  declare_model(N = my_N(), Y = rnorm(N)) +
+  declare_inquiry(Q = 0) +
+  declare_estimator(Y ~ 1)
+
+simplest_design_N2 |> redesign(N = 200) |> draw_data() |> nrow()
+```
+
+why not 200?
+
+### Redesign warnings
+
+
+A parameter has to be called explicitly
+
+```{r}
+N <- 100
+
+my_N <- function(n = N) n
+
+simplest_design_N2 <- 
+  
+  declare_model(N = my_N(N), Y = rnorm(N)) +
+  declare_inquiry(Q = 0) +
+  declare_estimator(Y ~ 1)
+
+simplest_design_N2 |> redesign(N = 200) |> draw_data() |> nrow()
+```
+
+
+OK
+
+### Redesign with a function
+
+Here is an example of redesigning where the "parameter" is a function
+
+```{r}
+new_N <- function(n, factor = 1.31) n*factor
+
+simplest_design_N2 |> redesign(my_N = new_N) |> draw_data() |> nrow()
+
+```
 

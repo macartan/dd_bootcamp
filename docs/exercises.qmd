@@ -23,16 +23,129 @@ custom-numbered-blocks:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 library(knitr)
 library(tidyverse)
 library(CausalQueries)
 library(DeclareDesign)
+
+q1 <- FALSE
 ```
 
 For each puzzle: explore the issues raised by the puzzle and generate a self contained presentation in `.qmd` (or `.Rmd`) that reports on your investigations. 
 
 
 # Basic DD
+
+::: {.Q #q-easingin}
+
+**Step by step**
+
+Define this tiny design:
+
+```{r, eval = q1}
+design <- declare_model(N = 20) + NULL
+```
+
+Note , the `NULL` here is needed in order to have a minimal pipe: turning a step into a design.
+
+Draw data from it:
+
+```{r,  eval = q1}
+draw_data(design) |> head()
+```
+
+Add some more detail to the model:
+
+```{r,  eval = q1}
+
+design <- 
+  design +
+  declare_model(Y = rnorm(N, mean = 1))
+
+```
+
+
+Note `N` is figured out by `DeclareDesign` from the model you have already declared.
+
+Draw data, it is what you expected?
+
+Add an inquiry:
+
+```{r,  eval = q1}
+design <- 
+  design +
+  declare_inquiry(Q = mean(Y))
+```
+
+Draw an estimand:
+
+```{r,  eval = q1}
+draw_estimand(design)
+```
+
+Do it again. 
+
+Add a sampling step:
+
+```{r,  eval = q1}
+design <- 
+  design + 
+  declare_sampling(S = complete_rs(N=N, n = N/2))
+```
+
+Draw data and check the length of the data:
+
+```{r,  eval = q1}
+draw_data(design) |> dim()
+
+```
+Is that what you expect?
+
+Add an estimator:
+
+```{r,  eval = q1}
+design <- 
+  design +
+  declare_estimator(Y ~ 1, .method = lm)
+```
+
+This runs `lm` and returns the constant.
+
+
+Draw an estimate:
+
+
+```{r,  eval = q1}
+draw_estimates(design)
+```
+
+Do it again.
+
+Run the design:
+
+
+```{r,  eval = q1}
+run_design(design)
+```
+
+Check out the structure of your design:
+
+```{r,  eval = q1}
+str(design)
+```
+
+Now: 
+
+* write code that declares this whole design in a single pipe.
+* diagnose the design and interpret the power
+
+```{r,  eval = q1}
+diagnose_design(design)
+```
+
+:::
+
 
 ::: {.Q #q-ddstartup}
 

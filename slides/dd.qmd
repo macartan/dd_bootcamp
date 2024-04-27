@@ -22,7 +22,7 @@ bibliography: bib.bib
 2. [`DeclareDesign` deepdive](#secdd2)
 3. [Assignment with `DeclareDesign`](#secdesign)
 4. [Power analysis with `DeclareDesign`](#secdiagnosis)
-5. [Observational strategies](#citopics) 
+5. [Declaring observational strategies](#citopics) 
 
 
 ```{css}
