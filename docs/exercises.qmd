@@ -1,7 +1,7 @@
 ---
 title: "puzzles for `DeclareDesign` bootcamp"
 author: "Macartan Humphreys"
-date: "2024"
+date: "28 April 2024"
 format: 
   html:
     toc: true
@@ -168,11 +168,16 @@ Then:
 
 
 
+
+
+
+# Inference
+
 ::: {.Q #q-ses}
 
 **A design with correlated outcomes** 
 
-* The standard error is standard deviation of the sampling distribution of an estimator. 
+* The standard error is standard deviation of the sampling distribution of an estimate. 
 
 * That sounds complicated, but actually the sampling distribution of an estimate lives in the simulations data frame so you can look at its standard deviation and assess whether standard errors estimate it well.
 
@@ -191,11 +196,6 @@ Y_Z_1 <- correlate(rnorm, given = Y_Z_0, rho = .5)
 cor(Y_Z_0, Y_Z_1)
 ```
 :::
-
-
-
-
-# Inference
 
 
 ::: {.Q #q-ses2}
@@ -224,41 +224,9 @@ g() |> slice(1:3, 13:15) |> kable()
 
 
 
-::: {.Q #q-ri1}
-
-**randomization inferences**
-
-Declare a factorial design with two binary treatments and an interaction between them. For example $Y = .1\times X1 + .3 \times X2 -  .2 \times X1 \times X2$
-
-Have a non-stochastic model declaration so that the only source of randomness is in the assignment procedure.
-
-Calculate a $p$ values for the null hypothesis of *no effect of treatmen $X1$* using randomization inference. 
-
-* Bonus: do the same for the null hypothesis *no interaction between treatments*
-* Bonus: Can you check the validity of the p value using the simulations dataframe?
-
-Hint: You can use the `ri2` package.  Hint you can keep the top level fixed by declaring shocks outside the design (`U <- rnorm(N)`) or by using a simulation vector in diagnosis (`sims = c(1,1,500, 1, ...)`)
-
-:::
-
 
 
 # Controls
-
-::: {.Q #q-controls}
-
-**Covariates**
-
-Sometimes researchers running an experiment look for imbalance on a covariate and then include the covariate as a control if and only if they see imbalance. Set up a design in which a covariate may or may not affect potential outcomes and assess the performance given different rules 
-
-* no control 
-* control as a function of correlations of covariates with outcomes
-* control as a function of correlations of covariates with outcomes in control only
-* control as a function of correlations of covariates with treatments
-* control regardless of correlations
-
-
-:::
 
 
 
@@ -276,5 +244,19 @@ Declare a design in which:
 Discuss results. Do any of these return the right answer?
 
 **Hint:** You can add three separate `declare_estimator` steps. They should have distinct labels. The trickiest part is to figure out how to extract the estimate in (c) because you will have both a main term and an interaction term for $X$. 
+:::
+
+
+::: {.Q #q-controls}
+
+**Covariates**
+
+Sometimes researchers running an experiment look for imbalance on a covariate and then include the covariate as a control if and only if they see imbalance. Set up a design in which a covariate may or may not affect potential outcomes and assess the performance given different rules 
+
+* no control 
+* control as a function of correlations of covariates with outcomes
+* control regardless of correlations
+
+
 :::
 

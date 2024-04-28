@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Macartan Humphreys">
-<meta name="dcterms.date" content="2024-01-01">
+<meta name="dcterms.date" content="2024-04-28">
 
 <title>puzzles for DeclareDesign bootcamp</title>
 <style>
@@ -3245,7 +3245,7 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 1, 2024</p>
+      <p class="date">April 28, 2024</p>
     </div>
   </div>
   
@@ -3346,11 +3346,14 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <p><strong>Hint</strong>: the slides contain code for a simple experimental design</p>
 </div></details>
 </div>
+</section>
+<section id="inference" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Inference</h1>
 <div id="q-ses" class="Q">
-<details class="Q fbx-simplebox fbx-default"><summary><strong>Q 1.3</strong></summary><div>
+<details class="Q fbx-simplebox fbx-default"><summary><strong>Q 2.1</strong></summary><div>
 <p><strong>A design with correlated outcomes</strong></p>
 <ul>
-<li><p>The standard error is standard deviation of the sampling distribution of an estimator.</p></li>
+<li><p>The standard error is standard deviation of the sampling distribution of an estimate.</p></li>
 <li><p>That sounds complicated, but actually the sampling distribution of an estimate lives in the simulations data frame so you can look at its standard deviation and assess whether standard errors estimate it well.</p></li>
 <li><p><code>Challenge</code>: Generate a simple experimental design in which there is a correlation (<code>rho</code>) between the two potential outcomes (<code>Y_Z_0</code> and <code>Y_Z_1</code>).</p></li>
 <li><p>Show the distribution of the estimates over different values of <code>rho</code></p></li>
@@ -3362,16 +3365,13 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(Y_Z_0, Y_Z_1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.491636</code></pre>
+<pre><code>[1] 0.5034729</code></pre>
 </div>
 </div>
 </div></details>
 </div>
-</section>
-<section id="inference" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Inference</h1>
 <div id="q-ses2" class="Q">
-<details class="Q fbx-simplebox fbx-default"><summary><strong>Q 2.1</strong></summary><div>
+<details class="Q fbx-simplebox fbx-default"><summary><strong>Q 2.2</strong></summary><div>
 <p><strong>Clustering</strong></p>
 <ul>
 <li>Say that you have a set of 20 schools randomly sampled from a superpopulation of schools. There are 5 classrooms in each school and 5 students in each class room.</li>
@@ -3403,39 +3403,39 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">01</td>
-<td style="text-align: right;">-0.3043257</td>
+<td style="text-align: right;">-0.032162</td>
 <td style="text-align: left;">001</td>
-<td style="text-align: right;">-1.9028695</td>
+<td style="text-align: right;">0.0306150</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">01</td>
-<td style="text-align: right;">-0.3043257</td>
+<td style="text-align: right;">-0.032162</td>
 <td style="text-align: left;">002</td>
-<td style="text-align: right;">0.2874852</td>
+<td style="text-align: right;">-0.4170501</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">01</td>
-<td style="text-align: right;">-0.3043257</td>
+<td style="text-align: right;">-0.032162</td>
 <td style="text-align: left;">003</td>
-<td style="text-align: right;">2.2805160</td>
+<td style="text-align: right;">-0.2049611</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">02</td>
-<td style="text-align: right;">1.6406804</td>
+<td style="text-align: right;">1.103179</td>
 <td style="text-align: left;">013</td>
-<td style="text-align: right;">1.1421826</td>
+<td style="text-align: right;">2.2271018</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">02</td>
-<td style="text-align: right;">1.6406804</td>
+<td style="text-align: right;">1.103179</td>
 <td style="text-align: left;">014</td>
-<td style="text-align: right;">-1.0798332</td>
+<td style="text-align: right;">-0.8099450</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">02</td>
-<td style="text-align: right;">1.6406804</td>
+<td style="text-align: right;">1.103179</td>
 <td style="text-align: left;">015</td>
-<td style="text-align: right;">-0.1316213</td>
+<td style="text-align: right;">0.5110117</td>
 </tr>
 </tbody>
 </table>
@@ -3443,36 +3443,11 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 </div>
 </div></details>
 </div>
-<div id="q-ri1" class="Q">
-<p></p><details class="Q fbx-simplebox fbx-default"><summary><strong>Q 2.2</strong></summary><div><strong>randomization inferences</strong><p></p>
-<p>Declare a factorial design with two binary treatments and an interaction between them. For example <span class="math inline">\(Y = .1\times X1 + .3 \times X2 - .2 \times X1 \times X2\)</span></p>
-<p>Have a non-stochastic model declaration so that the only source of randomness is in the assignment procedure.</p>
-<p>Calculate a <span class="math inline">\(p\)</span> values for the null hypothesis of <em>no effect of treatmen <span class="math inline">\(X1\)</span></em> using randomization inference.</p>
-<ul>
-<li>Bonus: do the same for the null hypothesis <em>no interaction between treatments</em></li>
-<li>Bonus: Can you check the validity of the p value using the simulations dataframe?</li>
-</ul>
-<p>Hint: You can use the <code>ri2</code> package. Hint you can keep the top level fixed by declaring shocks outside the design (<code>U &lt;- rnorm(N)</code>) or by using a simulation vector in diagnosis (<code>sims = c(1,1,500, 1, ...)</code>)</p>
-</div></details>
-</div>
 </section>
 <section id="controls" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Controls</h1>
-<div id="q-controls" class="Q">
-<details class="Q fbx-simplebox fbx-default"><summary><strong>Q 3.1</strong></summary><div>
-<p><strong>Covariates</strong></p>
-<p>Sometimes researchers running an experiment look for imbalance on a covariate and then include the covariate as a control if and only if they see imbalance. Set up a design in which a covariate may or may not affect potential outcomes and assess the performance given different rules</p>
-<ul>
-<li>no control</li>
-<li>control as a function of correlations of covariates with outcomes</li>
-<li>control as a function of correlations of covariates with outcomes in control only</li>
-<li>control as a function of correlations of covariates with treatments</li>
-<li>control regardless of correlations</li>
-</ul>
-</div></details>
-</div>
 <div id="q-confounded" class="Q">
-<p></p><details class="Q fbx-simplebox fbx-default"><summary><strong>Q 3.2</strong></summary><div><strong>Confounded.</strong><p></p>
+<p></p><details class="Q fbx-simplebox fbx-default"><summary><strong>Q 3.1</strong></summary><div><strong>Confounded.</strong><p></p>
 <p>Declare a design in which:</p>
 <ul>
 <li>The assignment of a treatment <span class="math inline">\(X\)</span> depends in part on upon some other, binary, variable <span class="math inline">\(W\)</span>: in particular <span class="math inline">\(\Pr(X=1|W=0) = .2\)</span> and <span class="math inline">\(\Pr(X=1|W=1) = .5\)</span>)</li>
@@ -3481,6 +3456,17 @@ return!"\t\n\x0B\f\r                　\u2028\u2029
 </ul>
 <p>Discuss results. Do any of these return the right answer?</p>
 <p><strong>Hint:</strong> You can add three separate <code>declare_estimator</code> steps. They should have distinct labels. The trickiest part is to figure out how to extract the estimate in (c) because you will have both a main term and an interaction term for <span class="math inline">\(X\)</span>.</p>
+</div></details>
+</div>
+<div id="q-controls" class="Q">
+<details class="Q fbx-simplebox fbx-default"><summary><strong>Q 3.2</strong></summary><div>
+<p><strong>Covariates</strong></p>
+<p>Sometimes researchers running an experiment look for imbalance on a covariate and then include the covariate as a control if and only if they see imbalance. Set up a design in which a covariate may or may not affect potential outcomes and assess the performance given different rules</p>
+<ul>
+<li>no control</li>
+<li>control as a function of correlations of covariates with outcomes</li>
+<li>control regardless of correlations</li>
+</ul>
 </div></details>
 </div>
 </section>

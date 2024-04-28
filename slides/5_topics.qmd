@@ -100,7 +100,7 @@ $$LATE = \frac{ITT}{\frac{n_c}{n}}= \frac{\text{Intent to treat effect}}{\text{F
 
 ### The good and the bad of LATE  {.smaller}
 
--   You get a well-defined estimate even when there is non-random take-up
+-   (with infinite data) You get a good estimate even when there is non-random take-up
 -   May sometimes be used to assess mediation or knock-on effects
 -   But:
     -   You need assumptions (monotonicity and the exclusion restriction -- *where were these used above*?)
@@ -132,7 +132,7 @@ declaration_iv <-
 
 ```
 
-### Diagnosis
+### Diagnosis {.smaller}
 
 ```{r, echo = FALSE}
 
@@ -166,16 +166,23 @@ The estimate:
 $$\hat\tau = (\mathbb{E}[Y^A | post] - \mathbb{E}[Y^A | pre]) -(\mathbb{E}[Y^B | post] - \mathbb{E}[Y^B | pre])$$
 (how different is the change in $A$ compared to the change in $B$?)
 
-can be written:
+can be written *using potential outcomes as*:
 
 $$\hat\tau = (\mathbb{E}[Y_1^A | post] - \mathbb{E}[Y_0^A | pre]) -(\mathbb{E}[Y_0^B | post] - \mathbb{E}[Y_0^B | pre])$$
 
 ### Logic {.smaller}
-Cleaning up
+
+
+With some manipulation and cleaning up:
 
 $$\hat\tau = (\mathbb{E}[Y_1^A | post] - \mathbb{E}[Y_0^A | pre]) -(\mathbb{E}[Y_0^B | post] - \mathbb{E}[Y_0^B | pre])$$
 
-$$\hat\tau = (\mathbb{E}[Y_1^A | post] - \mathbb{E}[Y_0^A | post]) + ((\mathbb{E}[Y_0^A | post] - \mathbb{E}[Y_0^A | pre]) -(\mathbb{E}[Y_0^B | post] - \mathbb{E}[Y_0^B | pre]))$$
+$$\begin{aligned}
+\hat\tau = (\mathbb{E}[Y_1^A | post] - \color{red}{\mathbb{E}[Y_0^A | post]}) + ((\color{red}{\mathbb{E}[Y_0^A | post]} - \mathbb{E}[Y_0^A | pre]) -(\mathbb{E}[Y_0^B | post] - \mathbb{E}[Y_0^B | pre]))
+
+\end{aligned}$$
+
+
 
 $$\hat\tau_{ATT} = \tau_{ATT} + \text{Difference in trends}$$
 
@@ -332,8 +339,7 @@ diagnose_design(design, sims = 1) |>
 
 
 
-See causal infernece slides for intuitions on what is happening here.
-
+See [causal inference](https://macartan.github.io/ci/ci_2024.html#/where-do-these-numbers-come) slides for intuitions on what is happening here as well as declaration using approach of Chaisemartin and d’Haultfoeuille (2020).
 
 ## Regression discontintuity
 
@@ -343,7 +349,7 @@ Errors and diagnostics
 
 ### Intuition
 
-* The core idea in an RDD design is that if a decision rule assigns units that are *almost identical* to each other to treatment and control conditions then we can infer effects *for those cases* by looking *at those cases*.
+* The core idea in an RDD design is that if a decision rule assigns units that are *almost identical* to each other to treatment and control conditions then we can infer effects *for those cases*^[though when we look at the estimand definition you will see that's not exactly right] by looking *at those cases*.
 
 
 See excellent introduction:  @lee2010regression
@@ -407,7 +413,7 @@ Sometimes:
 * argue for why estimates extend beyond the threshold
 * exclude points *at* the threshold (!)
 
-### Design
+### Design {.smaller}
 
 ```{r}
 library(rdss) # for helper functions
@@ -455,9 +461,10 @@ See  @calonico2014robust and related papers `? rdrobust::rdrobust`
 ### RDD Data plotted
 
 ```{r}
-rdd_design  |> draw_data() |> ggplot(aes(X, Y, color = factor(D))) + 
-  geom_point(alpha = .3) + theme_bw() +
-  geom_smooth(aes(X, Y_D_0)) + geom_smooth(aes(X, Y_D_1)) + theme(legend.position = "none")
+rdd_design  |> draw_data() |> 
+  ggplot(aes(X, Y, color = factor(D))) + 
+  geom_point(alpha = .3) + theme_bw()+ theme(legend.position = "none") + 
+  geom_smooth(aes(X, Y_D_0)) + geom_smooth(aes(X, Y_D_1)) 
 
 ```
 

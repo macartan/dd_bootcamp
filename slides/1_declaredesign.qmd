@@ -59,7 +59,7 @@ Design declaration is telling the computer (and readers) what `M`, `I`, `D`, and
 
 * Design diagnosis is figuring out how the design will perform under imagined conditions.
 
-* Estimating "diagnosands" like power, bias, rmse, error rates, ethical harm, "amount learned".
+* Estimating "diagnosands" like power, bias, rmse, expected error rates, expected ethical harm, expected  "amount learned".
 
 *  Diagnosis takes account of model uncertainty: it aims  to identify models for which the design works well and models for which it does not
 
@@ -70,7 +70,7 @@ Redesign is the fine-tuning of  features of the data- and answer strategies to u
 * Different sample sizes
 * Different randomization procedures
 * Different estimation strategies
-* Implementation: effort into compliance versus more effort into sample size
+* Implementation (e.g. gains from effort into compliance versus more effort into sample size)
 
 ### Very often you have to simulate
 
@@ -81,7 +81,7 @@ Redesign is the fine-tuning of  features of the data- and answer strategies to u
 ## Key functions and resources
 
 
-### Key commands for making a design
+### Key commands for design declaration
 
 * `declare_model()`
 * `declare_inquiry()`
@@ -137,6 +137,7 @@ knitr::include_graphics("assets/cheat_sheet.png")
 
 ```{r}
 mean <- 0
+
 simplest_design <- 
   declare_model(N = 100, Y = rnorm(N, mean)) +
   declare_inquiry(Q = mean) +
@@ -154,7 +155,7 @@ simplest_design <-
 ```{r}
 simplest_design <- 
   declare_model(N = 100, Y = rnorm(N, mean)) +
-  declare_inquiry(Q = 0) +
+  declare_inquiry(Q = mean) +
   declare_estimator(Y ~ 1)
 
 ```
@@ -237,7 +238,8 @@ Or by asking for many runs of the design
 
 ```{r, warning = FALSE}
 some_runs <- simplest_design |> simulate_design(sims = 1000)
-some_runs |> kable(digits = 2) |> kable_styling(font_size = 16)
+
+some_runs |> head() |> kable(digits = 2) |> kable_styling(font_size = 16)
 ```
 
 
@@ -257,10 +259,10 @@ Once you have simulated many times you can "diagnose".
 For instance we can ask about bias: the average difference between the estimand and the estimate:
 
 ```{r, eval = FALSE}
-some_runs |> mutate(error = estimate - estimand) |>
+some_runs |> 
   summarize(mean_estimate = mean(estimate), 
             mean_estimand = mean(estimand), 
-            bias = mean(error)) 
+            bias = mean(estimate - estimand)) 
 ```
 
 ```{r, echo = FALSE}
@@ -595,7 +597,7 @@ read_rds("saved/redesigns.rds") |>
   
 ### Graphing after redesigning to a list
 
-Graphing after redesign is especially easy:
+Graphing after redesign is easy:
 
 
 ```{r, eval = FALSE}
@@ -652,7 +654,12 @@ data |> head () |> kable() |> kable_styling(font_size = 20)
 
 Play with the data:
 
-```{r, comment = ""}
+```{r, comment = "", eval = FALSE}
+lm_robust(Y ~ Z, data = data)
+
+```
+
+```{r, comment = "", echo = FALSE}
 lm_robust(Y ~ Z, data = data) |>
   tidy() |>
   kable(digits = 2) |> 
@@ -742,9 +749,9 @@ new_design <-
 ### Compare designs
 
 ```{r, eval = FALSE}
-redesign(design, N = 50) %>%
-  
-  compare_diagnoses(design) 
+
+compare_diagnoses(design1 = design,
+                  design2 = redesign(design, N = 50))
 
 ```
 

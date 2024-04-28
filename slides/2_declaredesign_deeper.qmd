@@ -15,6 +15,14 @@ author: "Graeme Blair, Alex Coppock, Macartan Humphreys"
 bibliography: bib.bib
 ---
 
+
+```{r, include=FALSE}
+source("setup.R")
+run <- FALSE
+```
+
+
+
 # `DeclareDesign`: A deeper dive {#secdd2}
 
 ## Steps in an experimental design
@@ -47,7 +55,7 @@ New elements:
 
 * `declare_model` can be used much like `mutate` with multiple columns created in sequence
 * the `potential_outcomes` function is a special function that creates potential outcome columns for different values of `Z`
-* when you assign a treatment that affects an outcome you can use `reveal_outcome` to reveal the outcome; `Z` and `Y` are  default
+* when you assign a treatment that affects an outcome you can use `reveal_outcome` to reveal the outcome; `Z` and `Y` are  default names
 * when you declare an estimator you should normally include a label, specify an inquiry, and provide the method to be used (`lm_robust` is default)
 
 ### Steps: Order matters
@@ -217,12 +225,12 @@ model$adj.r.squared
 Many causal inquiries are simple summaries of potential outcomes:
 
 ::: {style="font-size: 20px;"}
-| Inquiry                                                    | Units                                            | Code                                                              |  
-| ---------------------------------------------------------- | ------------------------------------------------ |----------------------------------------------------------------- |
-| Average treatment effect in a finite population (PATE)     | Units in the population                          | `mean(Y_D_1 - Y_D_0)`                                             | 
-| Conditional average treatment effect (CATE) for X = 1      | Units for whom X = 1                             | `mean(Y_D_1[X == 1] - Y_D_0[X == 1])`                             | 
-| Complier average causal effect (CACE)                      | Complier units                                   | `mean(Y_D_1[D_Z_1 > D_Z_0] - Y_D_0[D_Z_1 > D_Z_0])`               | 
-| Causal interactions of $D_1$ and $D_2$                     | Units in the population                          | `mean((Y_D1_1_D2_1 - Y_D1_0_D2_1) - (Y_D1_1_D2_0 - Y_D1_0_D2_0))` | 
+| Inquiry                                                    | Units                                  | Code                                                                 |  
+| ---------------------------------------------------------- | -------------------------------------- |--------------------------------------------------------------------- |
+| Average treatment effect in a finite population (PATE)     | Units in the population                | `mean(Y_D_1 - Y_D_0)`                                                | 
+| Conditional average treatment effect (CATE) for X = 1      | Units for whom X = 1                   | `mean(Y_D_1[X == 1] - Y_D_0[X == 1])`                                | 
+| Complier average causal effect (CACE)                      | Complier units                         | `mean(Y_D_1[D_Z_1 > D_Z_0] - Y_D_0[D_Z_1 > D_Z_0])`                  | 
+| Causal interactions of $D_1$ and $D_2$                     | Units in the population                | `mean((Y_D1_1_D2_1 - Y_D1_0_D2_1) - (Y_D1_1_D2_0 - Y_D1_0_D2_0))`    | 
 :::
 
 Generating potential outcomes columns gets you far
