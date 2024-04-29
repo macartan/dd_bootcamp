@@ -32,7 +32,7 @@ source("setup.R")
 ## Noncompliance and the LATE estimand {#LATE}
 
 ```{r, echo = FALSE}
-model <- make_model("Z -> X -> Y; X <-> Y") 
+model <- make_model("Z -> D -> Y; D <-> Y") 
 model |> plot()
 ```
 

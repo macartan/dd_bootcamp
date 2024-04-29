@@ -483,8 +483,6 @@ simplest_design |> diagnose_design(sims = 10)|>
 
 ```
 
-
-
 ### Diagnosing in groups {.smaller}
 
 
@@ -583,6 +581,42 @@ list(diagnosis_1 = read_rds("saved/multistage1.rds") |> reshape_diagnosis(),
 ```
 
 In the second the estimate is drawn just once. The SD of the estimate is lower. But the RMSE is not very different. 
+
+### Illustration with tailored estimator and diagnosand
+
+```{r}
+my_estimator <- function(data) 
+  data.frame(outcome = "Y", estimate = mean(data$Y), std.error = 0)
+
+design <-
+  declare_model(N = 5000, Y = rnorm(N)) +
+  declare_inquiry(Y_bar_pop = mean(Y, 1)) +
+  declare_sampling(S = complete_rs(N = N, n = 500)) +
+  declare_inquiry(Y_bar_sample = mean(Y)) +
+  declare_estimator(Y ~ 1, inquiry = "Y_bar_pop",label = "ols") +
+  declare_estimator(handler = label_estimator(my_estimator),
+                    inquiry = "Y_bar_sample",
+                    label = "mean")
+my_diagnosands <-
+  declare_diagnosands(
+    bias = mean(estimate - estimand),
+    rmse = mean((estimate - estimand)^2)^.5,
+    mean_se = mean(std.error))
+```
+
+### Diagnosis
+
+```{r, eval = FALSE}
+diagnose_design(design, diagnosands = my_diagnosands)
+```
+
+
+```{r, echo = FALSE}
+if(run)
+  diagnose_design(design, diagnosands = my_diagnosands) |> write_rds("saved/popsamp.rds")
+
+read_rds("saved/popsamp.rds") |> reshape_diagnosis() |>   kable(digits = 2) |> kable_styling(font_size = 20)
+```
 
 
 ## Advanced Redesign

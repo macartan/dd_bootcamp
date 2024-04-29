@@ -452,7 +452,7 @@ read_rds("saved/simplest_design_2.rds") |>
 
 
 * Why is coverage so high? is that OK?
-* Why is the RMSE 0 but the SD of the estimate  > 0?  is that OK?
+* Why is the RMSE 0? But in each run the std.error > 0?  is that OK?
    * Is it because the RMSE is too low?
    * Or the standard error is too large?
 
