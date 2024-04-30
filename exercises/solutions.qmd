@@ -166,7 +166,7 @@ In this world we have:
 
 * a **constant treatment effect** of 1 
 * **positively correlated potential outcomes** (If $Y(0)$ is low then $Y(1)$ is low; If $Y(0)$ is high then $Y(1)$ is high.) 
-* If we assign unit 1 to treatment we will estimate $\hat\tau = 1-1 = 0$, otherwise we will estimate $\hat\tau = 2-0 = 2$. So we will be right on average but have **high variance**.
+* If we assign unit 1 to treatment we will estimate $\hat\tau = 1-2 = -1$, otherwise we will estimate $\hat\tau = 3-0 = 3$. So right on average but with  **high variance**.
 
 ## Why is this? {.smaller}
 
@@ -183,7 +183,7 @@ In this world we have:
 
 * **heterogeneous treatment effects**
 * **negatively correlated potential outcomes** (If $Y(0)$ is low then $Y(1)$ is high; If $Y(0)$ is high then $Y(1)$ is low). 
-* If we assign unit 1 to treatment we will estimate $\hat\tau = 3-2 = 1$, otherwise $\hat\tau = 1-0 = 1$. So we will be right on average with no **variance**.
+* If we assign unit 1 to treatment we will estimate $\hat\tau = 3-2 = 1$, otherwise $\hat\tau = 1-0 = 1$. So we will be right on average with **no variance**.
 
 
 ## Why is this? {.smaller}
