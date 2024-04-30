@@ -1,0 +1,346 @@
+---
+format: 
+   revealjs:
+    embed-resources: true
+    theme: serif
+    slide-level: 3
+    slide-number: true
+    show-slide-number: all
+    preview-links: auto
+title: "Sample solutions"
+author: "Macartan"
+params:
+  run: FALSE
+execute: 
+  echo: true
+  warning: false
+  error: false
+  cache: false
+---
+
+# Set up
+
+```{r}
+library(tidyverse)
+library(DeclareDesign)
+library(knitr)
+library(CausalQueries)
+library(dagitty)
+```
+
+
+# 1.2 False positives {.smaller}
+
+The exercise was:
+
+ * Generate a simple experimental design from scratch in which we can vary the `N` and *in which there is no true effect* of some treatment.
+ * Plot the distribution of $p$ values from the `simulations_df`. What shape is it and why?
+ * Plot the power as $N$ increases, using the `diagnosands_df`
+ * Plot the estimates against $p$ values for different values of $N$; what do you see?
+
+
+## Answer: Design  {.smaller}
+
+```{r, echo = TRUE}
+N <- 100
+design <- 
+  declare_model(N = N, U = rnorm(N), potential_outcomes(Y ~  U)) + 
+  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) + 
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) + 
+  declare_estimator(Y ~ Z, inquiry = "ate", .method = lm_robust)
+```
+
+```{r, eval = FALSE}
+diagnosis <- design |> redesign(N =  c(10, 100, 1000, 10000)) |> 
+  diagnose_design(sims = 2000)
+```
+
+```{r, echo = FALSE}
+if(params$run)
+  design |> redesign(N =  c(10, 100, 1000, 10000)) |> 
+  diagnose_design(sims = 5000) |>
+  write_rds("saved/2.1.rds")
+diagnosis <-   read_rds("saved/2.1.rds")
+``` 
+
+## results 1  {.smaller}
+
+Power flatlines
+
+```{r, echo = TRUE, fig.height = 3, fig.width = 14}
+diagnosis$simulations_df |> ggplot(aes(p.value)) + geom_histogram(boundary = .25) + facet_grid(~N)
+```
+
+## results 2  {.smaller}
+
+```{r, echo = TRUE}
+diagnosis$simulations_df |> group_by(N) |>
+  summarize(power = mean(p.value <=.05, na.rm = TRUE))|> 
+  ggplot(aes(N, power)) + geom_line() + ylim(0, 1) +  scale_x_log10() 
+```
+
+## results 3  {.smaller}
+
+```{r, echo = TRUE}
+
+diagnosis$simulations_df |> ggplot(aes(estimate, p.value)) + geom_point() +   facet_grid(~N)
+```
+
+The distribution of $p$ values is uniform regardless of $N$. The power is flat, at 5%. However with larger N lower p values are achieved with lower estimates
+
+# 2.1 Standard errors (covariance of potential outcomes)  {.smaller}
+
+
+## Puzzle:
+
+* Generate a simple experimental design in which there is a correlation (`rho`) between the two potential outcomes (`Y_Z_0` and `Y_Z_1`). 
+* Show the distribution of the estimates over different values of `rho`
+* Assess the performance of the estimates of the standard errors and the coverage as `rho` goes from -1 to 0 to 1. Describe how coverage changes. (Be sure to be clear on what coverage is!)
+
+## Design  {.smaller}
+
+```{r}
+
+rho = 0
+
+design <- 
+  declare_model(N = 1000,
+                Y_Z_0 = rnorm(N),
+                Y_Z_1 = 1 + correlate(rnorm, given = Y_Z_0, rho = rho)) +
+  declare_inquiry(ate = mean(Y_Z_1 - Y_Z_0)) +
+  declare_assignment(Z = simple_ra(N), Y = reveal_outcomes(Y ~ Z)) + 
+  declare_estimator(Y ~ Z, inquiry = "ate", .method = lm_robust)
+
+```
+
+## Redesign and diagnosis  {.smaller}
+
+```{r, eval = FALSE}
+diagnosis <-
+  design |> redesign(rho = seq(-1, 1, length = 5)) |> 
+  diagnose_design()
+```
+
+## How the sampling distribution depends upon `rho`  {.smaller}
+
+```{r, eval = params$run, echo = FALSE}
+design |> redesign(rho = seq(-1, 1, length = 5)) |> 
+  diagnose_design(sims = 2000) |>
+  write_rds("saved/2.3.rds")
+```
+
+```{r, echo = FALSE}
+diagnosis <- read_rds("saved/2.3.rds")
+
+```
+
+```{r}
+diagnosis$simulations_df |> ggplot(aes(estimate)) +
+  geom_histogram() + facet_grid(~rho)
+
+```
+
+## How coverage depends upon `rho`  {.smaller}
+
+
+```{r}
+diagnosis$diagnosands_df |> ggplot(aes(rho, coverage)) + 
+  geom_line() +
+  geom_hline(yintercept = .95, color = "red")
+
+```
+
+# 2.2 Clustering  {.smaller}
+
+Exercise:
+
+* Say you assign a treatment at the classroom level. Should you cluster your standard errors at the level of the school or at the level of the classroom?
+* Declare a design with this hierarchical data structure. Allow for the possibility that treatment effects vary at the school level. Assess the performance of the standard errors when you cluster at each of these levels (and when you do not cluster at all).
+* Examine whether the performance depends on whether you are interested in the population average effects or the sample average effects.
+
+
+## Design  {.smaller}
+
+```{r, echo = TRUE}
+design <- 
+  declare_model(
+    school = add_level(N = 20, u = rnorm(N, 0, 5)),
+    class = add_level(N = 5, v = rnorm(N)),
+    student =add_level(N = 5, w = rnorm(N))
+    ) +
+  declare_model(potential_outcomes(Y ~  Z + Z*u + v + w)) + 
+  declare_assignment(Z = cluster_ra(clusters = class), Y = reveal_outcomes(Y ~ Z)) +
+  declare_inquiry(PATE = 1,
+          SATE = mean(Y_Z_1 - Y_Z_0)) +
+  declare_estimator(Y~Z, label = "a. none") +
+  declare_estimator(Y~Z, clusters = class, label = "b. class") +
+  declare_estimator(Y~Z, clusters = school, label = "c. school") 
+```
+
+## Diagnosis  {.smaller}
+
+
+```{r, eval = FALSE, echo = TRUE}  
+diagnosis <- diagnose_design(design, sims = 2000)
+```
+
+```{r, echo = FALSE}
+if(params$run) 
+diagnose_design(design, sims = 2500) |> write_rds("saved/2.2.rds")
+diagnosis <- read_rds("saved/2.2.rds")
+```
+
+```{r}
+diagnosis$diagnosands_df |> 
+  ggplot(aes(estimator, coverage, color=inquiry)) + geom_point()
+
+```
+
+
+
+# 3.1 Confounded  {.smaller}
+
+## Puzzle   {.smaller}
+
+* The assignment of a  treatment $X$ depends in part on upon some other, binary, variable $W$: in particular  $\Pr(X=1|W=0) = .2$ and $\Pr(X=1|W=1) = .5$)
+* The outcome $Y$ depends on both $X$ and $W$: in particular $Y = X*W + u$ where $u$ is a random shock.
+* Diagnose a design with three approaches to estimating the effect of $X$ on $Y$: (a) ignoring $W$ (b) adding $W$ as a linear control (c) including both $W$  and an interaction between $W$ and $X$. 
+
+## Design  {.smaller}
+
+```{r}
+
+design <- 
+  declare_model(N = 1000, 
+                 W = rbinom(N, 1, .5),
+                 U = rnorm(N, 0, .1),
+                 X = rbinom(N, 1, .2 + .3*W),
+                 Y = X*W + U) +
+  declare_inquiry(ATE = mean(W)) +
+  declare_estimator(Y ~ X, label = "naive") + 
+  declare_estimator(Y ~ X + W, label = "control") + 
+  declare_measurement(W_demeaned = W - mean(W)) +
+  declare_estimator(Y ~ X*W_demeaned, label = "interacted")  
+
+```
+
+## Diagnosis  {.smaller}
+
+```{r, eval = FALSE}
+diagnose_design(design)
+```
+
+```{r, eval = params$run, echo = FALSE}
+diagnose_design(design) |> write_rds("saved/2.4.rds")
+```
+
+
+```{r, echo = FALSE}
+
+read_rds("saved/2.4.rds") |> reshape_diagnosis() |> select(Estimator, 'Mean Estimand', 'Mean Estimate', Bias, Coverage) |>  kable()
+
+```
+
+## Notes on 3.1  {.smaller}
+
+The estimate from the naive model is wildly off because it effectively weights the strata with W=1 (where there is an effect of 1) according to its variance in treatment assignment ($.5*.5$) and the W=0 strata according to its variance ($.2 * .8$), giving an expected estimate of $0.25/(.25 + .16) = 0.61$.
+
+The '"saturated" regression deals with this, but to get the average estimate you have to average the estimate in the W=0 and in the W=1 condition.  There are different ways to do this but here we do it by demeaning W, then the coefficient on the "main" term actually captures the average.
+
+
+
+
+## 3.2 Conditional Bias and Precision Gains from Controls
+
+Takeaways
+
+* Treatment correlated with covariates can induce "conditional bias." 
+* Including controls that are correlated with treatment can introduce inefficiencies
+* Including controls can change your estimates so be sure not to fish!
+
+##  Declaration
+
+```{r}
+a <- 0
+b <- 0
+
+design <- 
+  declare_model(N = 100,
+                        X = rnorm(N),
+                        Z = complete_ra(N),
+                        Y_Z_0 = a*X + rnorm(N),
+                        Y_Z_1 = a*X + correlate(given = X, rho = b, rnorm) + 1,
+                        Y = reveal_outcomes(Y ~ Z)) +
+  declare_inquiry(ATE = mean(Y_Z_1 - Y_Z_0)) +
+  declare_estimator(Y ~ Z, covariates = ~X, .method = lm_lin, label = "Lin") +
+  declare_estimator(Y ~ Z,  label = "No controls") +
+  declare_estimator(Z ~ X,  label = "Condition")
+```
+
+The design implements estimation controlling and not controlling for $X$  and also keeps track of the results of a test for the relation between $Z$ and $X$. 
+
+## Simulations
+
+We simulate with many simulations over a range of designs
+
+```{r, eval = FALSE}
+simulations <- 
+  list(design |> redesign(a = 0, b = 0),  design |> redesign(a = 1, b = 0),  design |> redesign(a = 0, b = 1)) |>
+  simulate_design(sims = 20000) 
+```
+
+```{r bigsimsmutz, echo = FALSE}
+
+if(params$run)
+  list(design |> redesign(a= 0, b = 0),  design |> redesign(a = 1, b = 0),  design |> redesign(a = 0, b = .8)) |>
+  simulate_design(sims = 20000)|>
+  mutate(design = paste("a =", a, ", b =", b))  |>
+  write_rds("saved/tocontrolornot.rds")
+
+simulations <-  read_rds("saved/tocontrolornot.rds") |>
+  mutate(design_label = factor(design, c("a = 0 , b = 0",    "a = 1 , b = 0", "a = 0 , b = 0.8"), c("X unrelated", "X also causes Y", "X moderates Z")))
+
+```
+
+
+## Standard errors {.smaller}
+
+We see the standard errors are larger when you control in cases in which the control is *not* predictive of the outcome *and* it *is* correlated with the treatment. Otherwise they can be smaller.
+
+```{r mutz, echo = FALSE}
+
+simulations |> group_by(a, b, sim_ID) |> 
+  mutate(correlation = mean(statistic[estimator == "Condition"])) |> 
+  ungroup() |>
+  mutate(error = estimate - estimand,
+        unbalanced = abs(correlation) >= 1.96) |>
+  filter(estimator != "Condition") |>
+
+  ggplot(aes(correlation, std.error, color = estimator)) + facet_grid(design_label~., scales = "free")+   
+  theme_bw() +  geom_smooth() + xlab("imbalance between covariate, X,  and treatment, Z (z stat)") + xlim(-4, 4)
+
+
+```
+
+
+See [Mutz et al](https://www.asc.upenn.edu/sites/default/files/2021-03/The%20perils%20of%20balance%20testing%20in%20experimental%20design-%20Messy%20analyses%20of%20clean%20data.pdf)
+
+## Errors 
+
+We also see "conditional bias" when we do not control: where the distribution of errors depends on the correlation with the covariate.
+
+```{r, echo = FALSE, fig.cap = "Errors"}
+
+simulations |> group_by(a, b, sim_ID) |> 
+  mutate(correlation = mean(statistic[estimator == "Condition"])) |> 
+  ungroup() |>
+  mutate(error = estimate - estimand,
+        unbalanced = abs(correlation) >= 1.96) |>
+  filter(estimator != "Condition") |>
+
+  ggplot(aes(correlation, error)) + facet_grid(design_label~estimator)+  theme_bw() + geom_point(alpha = .2) + geom_smooth()  + 
+  xlab("imbalance between covariate, X,  and treatment, Z (z stat)")
+
+
+```
+
