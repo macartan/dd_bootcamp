@@ -1,20 +1,21 @@
-library(DeclareDesign)
-library(knitr)
-library(tidyverse)
-library(kableExtra)
-library(CausalQueries)
-library(DesignLibrary)
-library(xtable)
-library(knitr)
-library(sandwich)
-library(lmtest)
-library(tidyverse)
-library(dagitty)
-library(ggdag)
-library(ggtext)
-library(latex2exp)
-library(cowplot)
-library(pwrss)
+pacman::p_load(
+  CausalQueries, 
+  cowplot, 
+  dagitty, 
+  DeclareDesign, 
+  DesignLibrary, 
+  ggdag, 
+  ggtext, 
+  kableExtra, 
+  knitr, 
+  latex2exp, 
+  lmtest, 
+  margins,
+  pwrss, 
+  sandwich, 
+  tidyverse, 
+  xtable
+)
 
 options(mc.cores = parallel::detectCores())
 

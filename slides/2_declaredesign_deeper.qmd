@@ -416,7 +416,7 @@ design <- design +
 
 ### A: Answers: other packages
 
-```{r}
+```{r, echo = FALSE}
 if(run)
   diagnose_design(design) |> write_rds("saved/probit_2.rds")
 
@@ -558,7 +558,7 @@ Compare these two diagnoses:
 
 ```{r, warning = FALSE, eval = FALSE}
 diagnosis_1 <- diagnose_design(sampling_design, sims = c(5000, 1, 1, 1)) 
-diagnosis_2 <- diagnose_design(sampling_design, sims = c(1, 5000, 1, 1))
+diagnosis_2 <- diagnose_design(sampling_design, sims = c(1, 1, 5000, 1))
 ```
 
 
@@ -567,7 +567,7 @@ diagnosis_2 <- diagnose_design(sampling_design, sims = c(1, 5000, 1, 1))
 if(run){
 set.seed(1)
 diagnose_design(sampling_design, sims = c(5000, 1, 1, 1)) |> write_rds("saved/multistage1.rds") 
-diagnose_design(sampling_design, sims = c(1, 5000, 1, 1)) |> write_rds("saved/multistage2.rds")
+diagnose_design(sampling_design, sims = c(1, 1, 5000, 1)) |> write_rds("saved/multistage2.rds")
 }
 
 list(diagnosis_1 = read_rds("saved/multistage1.rds") |> reshape_diagnosis(),
@@ -580,7 +580,8 @@ list(diagnosis_1 = read_rds("saved/multistage1.rds") |> reshape_diagnosis(),
 
 ```
 
-In the second the estimate is drawn just once. The SD of the estimate is lower. But the RMSE is not very different. 
+In the second, the estimand is drawn just once. 
+The SD of the estimate is lower. But the RMSE is not very different. 
 
 ### Illustration with tailored estimator and diagnosand
 
